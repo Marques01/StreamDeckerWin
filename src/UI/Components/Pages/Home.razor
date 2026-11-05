@@ -1,0 +1,1246 @@
+﻿@page "/"
+@using System.Diagnostics
+@using System.Runtime.InteropServices
+@using NAudio.CoreAudioApi
+
+<style>
+
+
+
+
+    /* IDENTIDADE VISUAL */
+
+    .app-shell {
+        min-height: 100vh;
+        display: flex;
+        background: #11121a;
+        color: #f4f4fa;
+        font-family: 'Inter', sans-serif;
+    }
+
+    /* SIDEBAR */
+
+    .sidebar {
+        width: 214px;
+        min-width: 214px;
+        padding: 18px 10px;
+        background: #171624;
+        border-right: 1px solid #29263d;
+    }
+
+    .brand {
+        padding: 0 5px 15px;
+    }
+
+    .brand-logo {
+        width: 39px;
+        height: 39px;
+        display: grid;
+        place-items: center;
+        border-radius: 12px;
+        font-size: 25px;
+        font-weight: 800;
+        color: white;
+        background: linear-gradient(135deg, #9b55ff, #5125ca);
+        box-shadow: 0 0 20px #793dff55;
+    }
+
+    .brand strong,
+    .brand span {
+        display: block;
+    }
+
+    .brand strong {
+        font-size: 14px;
+    }
+
+    .brand span {
+        font-size: 11px;
+        color: #aaa8bf;
+    }
+
+    .navigation .nav-link {
+        height: 43px;
+        padding: 0 12px;
+        border-radius: 9px;
+        color: #c4c1d6;
+        font-size: 12px;
+        transition: .2s;
+    }
+
+        .navigation .nav-link i {
+            font-size: 18px;
+        }
+
+        .navigation .nav-link:hover {
+            background: #29243e;
+            color: white;
+        }
+
+        .navigation .nav-link.active {
+            color: white;
+            background: linear-gradient(100deg, #4f25c9, #29205a);
+            box-shadow: 0 4px 15px #4f25c933;
+        }
+
+    .sidebar-footer {
+        padding: 12px 8px;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        font-size: 10px;
+        color: #77758f;
+    }
+
+    /* CONTEÚDO PRINCIPAL */
+
+    .main-content {
+        min-width: 0;
+        padding: 28px 24px;
+        overflow-x: hidden;
+        background: radial-gradient(ellipse at 30% 65%, #34206c33, transparent 40%), #11121a;
+    }
+
+    .page-header h1 {
+        margin: 0 0 7px;
+        font-size: 25px;
+        font-weight: 700;
+    }
+
+    .page-header p {
+        margin: 0;
+        font-size: 12px;
+        color: #aaa8bd;
+    }
+
+    /* STATUS SERIAL */
+
+    .connection-status {
+        padding: 11px 17px;
+        border: 1px solid #245c493d;
+        background: #182b29;
+        border-radius: 30px;
+        flex-shrink: 0;
+    }
+
+        .connection-status strong,
+        .connection-status small {
+            display: block;
+        }
+
+        .connection-status strong {
+            font-size: 12px;
+        }
+
+        .connection-status small {
+            margin-top: 3px;
+            font-size: 10px;
+            color: #a2b9b0;
+        }
+
+    .status-dot {
+        width: 11px;
+        height: 11px;
+        border-radius: 50%;
+        background: #18d987;
+        box-shadow: 0 0 12px #18d98788;
+    }
+
+    /* CARDS */
+
+    .dashboard-card {
+        color: #f4f4fa;
+        background: linear-gradient(145deg, #1d1e2c, #191a27);
+        border: 1px solid #303044;
+        border-radius: 13px;
+        box-shadow: 0 8px 25px #00000018;
+    }
+
+        .dashboard-card .card-title {
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+    .windows-icon {
+        font-size: 24px;
+        color: #43a9ff;
+    }
+
+    /* MONITORAMENTO */
+
+    .metric-row {
+        min-height: 43px;
+        border-bottom: 1px solid #ffffff08;
+    }
+
+        .metric-row:last-child {
+            border-bottom: 0;
+        }
+
+    .metric-icon {
+        width: 24px;
+        font-size: 17px;
+        color: #9c80ef;
+    }
+
+    .metric-name {
+        font-size: 12px;
+        color: #b9b7c9;
+    }
+
+    .metric-row {
+        position: relative;
+        width: 100%;
+    }
+
+    .sparkline {
+        width: 75px;
+        height: 30px;
+        flex-shrink: 0;
+        overflow: visible;
+    }
+
+        .sparkline polyline {
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+
+        .sparkline.purple {
+            stroke: #a45bff;
+        }
+
+        .sparkline.green {
+            stroke: #23cf8a;
+        }
+
+        .sparkline.yellow {
+            stroke: #e9b84e;
+        }
+
+        .sparkline.blue polyline {
+            stroke: #2999ff;
+        }
+
+        .sparkline.green polyline {
+            stroke: #42c98a;
+        }
+
+    
+    .radial-indicator circle {
+        transition: stroke-dashoffset .35s ease;
+    }
+
+    .radial-indicator {
+        position: relative;
+        width: 48px;
+        height: 48px;
+        flex-shrink: 0;
+    }
+
+        .radial-indicator svg {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+    .radial-value {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        font-size: 11px;
+        font-weight: 700;
+        color: white;
+    }
+
+    .radial-track {
+        fill: none;
+        stroke: #343044;
+        stroke-width: 4;
+    }
+
+    .radial-progress {
+        fill: none;
+        stroke: #9b65ff;
+        stroke-width: 4;
+        stroke-linecap: round;
+        transition: stroke-dashoffset .35s ease;
+    }
+
+    
+
+
+    /* REPRESENTAÇÃO DO DISPOSITIVO */
+
+    .device-area {
+        position: relative;
+        min-height: 310px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+    }
+
+    .device-glow {
+        position: absolute;
+        width: 300px;
+        height: 250px;
+        background: #642bff;
+        filter: blur(100px);
+        opacity: .19;
+    }
+
+    .stream-device {
+        z-index: 1;
+        position: relative;
+        width: 275px;
+        padding: 13px;
+        border-radius: 22px;
+        background: linear-gradient(145deg, #363744, #111218 60%);
+        border: 2px solid #484654;
+        box-shadow: 0 20px 35px #0009, inset 0 1px 3px #ffffff33;
+        transform: perspective(900px) rotateY(-7deg) rotateX(2deg);
+    }
+
+    /* TFT */
+
+    .device-screen {
+        height: 105px;
+        background: linear-gradient(135deg, #080b17, #131c32);
+        border: 5px solid #08090e;
+        border-radius: 10px;
+        box-shadow: inset 0 0 15px #000;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .screen-time {
+        font-size: 37px;
+        font-weight: 500;
+        letter-spacing: -2px;
+    }
+
+    .screen-date {
+        font-size: 10px;
+        color: #c6c9d7;
+    }
+
+    .screen-stats {
+        display: flex;
+        gap: 9px;
+        margin-top: 9px;
+        font-size: 8px;
+        color: #d4d8e5;
+    }
+
+    /* SWITCHES */
+
+    .device-keys {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 9px;
+        padding: 12px 5px 3px;
+    }
+
+    .device-key {
+        aspect-ratio: 1;
+        display: grid;
+        place-items: center;
+        border-radius: 9px;
+        background: linear-gradient(145deg, #282a37, #090a10);
+        border: 1px solid #444653;
+        box-shadow: 0 4px 0 #050509, 0 5px 8px #0009;
+        font-size: 27px;
+        color: #f0efff;
+        text-shadow: 0 0 7px #ffffff66;
+    }
+
+        .device-key.key-active {
+            color: #58a9ff;
+            text-shadow: 0 0 12px #328bff;
+        }
+
+    /* MÚSICA */
+
+    .album-cover {
+        width: 78px;
+        min-width: 78px;
+        height: 78px;
+        display: grid;
+        place-items: center;
+        border-radius: 9px;
+        background: linear-gradient(145deg, #9a56d9, #273b8c 55%, #111a36);
+        box-shadow: inset 0 0 20px #ffffff15;
+        font-size: 32px;
+        color: white;
+    }
+
+    .music-info {
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+    }
+
+        .music-info strong {
+            font-size: 12px;
+        }
+
+        .music-info span {
+            margin-top: 5px;
+            font-size: 11px;
+            color: #aaa8bd;
+        }
+
+    .music-controls button {
+        border: 0;
+        background: transparent;
+        color: #bcb9ce;
+        cursor: pointer;
+        font-size: 15px;
+    }
+
+        .music-controls button:hover {
+            color: #a77aff;
+        }
+
+    .music-controls .play-button {
+        color: #a77aff;
+        font-size: 19px;
+    }
+
+    /* VOLUME */
+
+    .volume-icon {
+        font-size: 23px;
+        color: #d4c7ff;
+    }
+
+    .volume-content strong {
+        min-width: 35px;
+        text-align: right;
+        font-size: 12px;
+    }
+
+    .volume-range {
+        accent-color: #914dff;
+    }
+
+    /* RESPONSIVIDADE */
+
+    @@media (max-width: 991.98px) {
+        .device-area {
+            min-height: 280px;
+        }
+    }
+
+    @@media (max-width: 575.98px) {
+        .sidebar {
+            width: 65px;
+            min-width: 65px;
+            padding: 18px 7px;
+        }
+
+        .brand {
+            justify-content: center;
+            padding-left: 0;
+            padding-right: 0;
+        }
+
+            .brand > div:last-child,
+            .navigation .nav-link span,
+            .sidebar-footer {
+                display: none;
+            }
+
+        .navigation .nav-link {
+            justify-content: center;
+            padding: 0;
+        }
+
+        .main-content {
+            padding: 18px 12px;
+        }
+
+        .page-header h1 {
+            font-size: 19px;
+        }
+
+        .page-header p {
+            max-width: 190px;
+        }
+
+        .connection-status {
+            padding: 8px;
+        }
+
+            .connection-status strong {
+                font-size: 10px;
+            }
+
+            .connection-status small {
+                font-size: 9px;
+            }
+    }
+
+</style>
+
+<div class="app-shell">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar d-flex flex-column">
+
+        <div class="brand d-flex align-items-center gap-2">
+            <div class="brand-logo">A</div>
+            <div>
+                <strong>ACM</strong>
+                <span>Stream Deck</span>
+            </div>
+        </div>
+
+        <nav class="navigation nav flex-column gap-2 mt-4">
+
+            <a class="nav-link active d-flex align-items-center gap-3" href="/">
+                <i class="bi bi-house-door"></i>
+                <span>Dashboard</span>
+            </a>
+
+            <a class="nav-link d-flex align-items-center gap-3" href="/device">
+                <i class="bi bi-cpu"></i>
+                <span>Dispositivo</span>
+            </a>
+
+            <a class="nav-link d-flex align-items-center gap-3" href="/profiles">
+                <i class="bi bi-grid"></i>
+                <span>Perfis</span>
+            </a>
+
+            <a class="nav-link d-flex align-items-center gap-3" href="/settings">
+                <i class="bi bi-gear"></i>
+                <span>Configurações</span>
+            </a>
+
+            <a class="nav-link d-flex align-items-center gap-3" href="/about">
+                <i class="bi bi-info-circle"></i>
+                <span>Sobre</span>
+            </a>
+
+        </nav>
+
+        <div class="sidebar-footer mt-auto">
+            <span>v1.0.0</span>
+            <span>acmtechlab.com.br</span>
+        </div>
+
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main-content flex-grow-1">
+
+        <!-- HEADER -->
+        <header class="page-header d-flex justify-content-between align-items-center gap-3 mb-4">
+
+            <div>
+                <h1>Olá, Cleiton!</h1>
+                <p>Seu Stream Deck está conectado e pronto para uso.</p>
+            </div>
+
+            <div class="connection-status d-flex align-items-center gap-2">
+                <span class="status-dot"></span>
+
+                <div>
+                    <strong>Conectado</strong>
+                    <small>COM3 • 115200</small>
+                </div>
+            </div>
+
+        </header>
+
+        <!-- DASHBOARD SUPERIOR -->
+        <div class="row g-3 mb-3">
+
+            <!-- STREAM DECK -->
+            <div class="col-12 col-lg-7">
+
+                <section class="device-area h-100">
+
+                    <div class="device-glow"></div>
+
+                    <div class="stream-device">
+
+                        <!-- TFT -->
+                        <div class="device-screen">
+
+                            <div class="screen-time">15:42</div>
+
+                            <div class="screen-date">
+                                Qui, 06 Nov
+                            </div>
+
+                            <div class="screen-stats">
+                                <span>CPU 12%</span>
+                                <span>RAM 34%</span>
+                                <span>GPU 18%</span>
+                            </div>
+
+                        </div>
+
+                        <!-- SEIS SWITCHES FÍSICOS -->
+                        <div class="device-keys">
+
+                            <div class="device-key key-active">
+                                <i class="bi bi-house-door-fill"></i>
+                            </div>
+
+                            <div class="device-key">
+                                <i class="bi bi-play-fill"></i>
+                            </div>
+
+                            <div class="device-key">
+                                <i class="bi bi-volume-up-fill"></i>
+                            </div>
+
+                            <div class="device-key key-active">
+                                <i class="bi bi-gear-fill"></i>
+                            </div>
+
+                            <div class="device-key">
+                                <i class="bi bi-music-note"></i>
+                            </div>
+
+                            <div class="device-key">
+                                <i class="bi bi-display"></i>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+            </div>
+
+            <!-- MONITORAMENTO -->
+            <div class="col-12 col-lg-5">
+
+                <div class="card dashboard-card h-100">
+
+                    <div class="card-body">
+
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="card-title mb-0">
+                                Informações do Windows
+                            </h6>
+
+                            <i class="bi bi-windows windows-icon"></i>
+                        </div>
+
+                        <!-- CPU -->
+                        <div class="metric-row d-flex align-items-center gap-2 mb-2">
+                            <i class="bi bi-cpu metric-icon"></i>
+                            <span class="metric-name flex-grow-1">CPU</span>
+
+                            <!-- Histórico -->
+                            <svg class="sparkline blue" viewBox="0 0 100 30">
+                                <polyline points="@CpuHistoryPoints" />
+                            </svg>
+
+                            <!-- Consumo atual -->
+                            <div class="radial-indicator">
+                                <svg viewBox="0 0 40 40" aria-hidden="true">
+                                    <circle cx="20" cy="20" r="16"
+                                            fill="none"
+                                            stroke="#343044"
+                                            stroke-width="4" />
+
+                                    <circle cx="20" cy="20" r="16"
+                                            fill="none"
+                                            stroke="#2999ff"
+                                            stroke-width="4"
+                                            stroke-linecap="round"
+                                            stroke-dasharray="100.53 100.53"
+                                            style="@($"stroke-dashoffset: {CpuDashOffset.ToString(System.Globalization.CultureInfo.InvariantCulture)}")"
+                                            transform="rotate(-90 20 20)" />
+                                </svg>
+
+                                <span class="radial-value">@cpuUsage%</span>
+                            </div>
+                        </div>
+
+                        <!-- RAM -->
+                        <div class="metric-row d-flex align-items-center gap-2 mb-2">
+                            <i class="bi bi-memory metric-icon"></i>
+                            <span class="metric-name flex-grow-1">RAM</span>
+
+                            <!-- Histórico -->
+                            <svg class="sparkline purple" viewBox="0 0 100 30">
+                                <polyline points="@RamHistoryPoints" />
+                            </svg>
+
+                            <!-- Consumo atual -->
+                            <div class="radial-indicator">
+                                <svg viewBox="0 0 40 40" aria-hidden="true">
+                                    <circle cx="20" cy="20" r="16"
+                                            fill="none"
+                                            stroke="#343044"
+                                            stroke-width="4" />
+
+                                    <circle cx="20" cy="20" r="16"
+                                            fill="none"
+                                            stroke="#a45bff"
+                                            stroke-width="4"
+                                            stroke-linecap="round"
+                                            stroke-dasharray="100.53 100.53"
+                                            style="@($"stroke-dashoffset: {RamDashOffset.ToString(System.Globalization.CultureInfo.InvariantCulture)}")"
+                                            transform="rotate(-90 20 20)" />
+                                </svg>
+
+                                <span class="radial-value">@ramUsage%</span>
+                            </div>
+                        </div>
+
+                        <!-- GPU -->
+                        <div class="metric-row d-flex align-items-center gap-2 mb-2">
+                            <i class="bi bi-gpu-card metric-icon"></i>
+                            <span class="metric-name flex-grow-1">GPU</span>
+
+                            <!-- Histórico -->
+                            <svg class="sparkline green" viewBox="0 0 100 30">
+                                <polyline points="@GpuHistoryPoints" />
+                            </svg>
+
+                            <!-- Consumo atual -->
+                            <div class="radial-indicator">
+                                <svg viewBox="0 0 40 40" aria-hidden="true">
+                                    <circle cx="20" cy="20" r="16"
+                                            fill="none"
+                                            stroke="#343044"
+                                            stroke-width="4" />
+
+                                    <circle cx="20" cy="20" r="16"
+                                            fill="none"
+                                            stroke="#42c98a"
+                                            stroke-width="4"
+                                            stroke-linecap="round"
+                                            stroke-dasharray="100.53 100.53"
+                                            style="@($"stroke-dashoffset: {GpuDashOffset.ToString(System.Globalization.CultureInfo.InvariantCulture)}")"
+                                            transform="rotate(-90 20 20)" />
+                                </svg>
+
+                                <span class="radial-value">@gpuUsage%</span>
+                            </div>
+                        </div>
+
+                        <!-- DISCO -->
+                        <div class="metric-row d-flex align-items-center gap-2">
+                            <i class="bi bi-device-hdd metric-icon"></i>
+                            <span class="metric-name flex-grow-1">Disco</span>
+
+                            <div class="radial-indicator">
+                                <svg viewBox="0 0 40 40" aria-hidden="true">
+                                    <circle cx="20" cy="20" r="16"
+                                            fill="none" stroke="#343044" stroke-width="4" />
+
+                                    <circle cx="20" cy="20" r="16"
+                                            fill="none" stroke="#e9b84e" stroke-width="4"
+                                            stroke-linecap="round"
+                                            stroke-dasharray="100.53 100.53"
+                                            style="@($"stroke-dashoffset: {DiskDashOffset.ToString(System.Globalization.CultureInfo.InvariantCulture)}")"
+                                            transform="rotate(-90 20 20)" />
+                                </svg>
+                                <span class="radial-value">@diskUsage%</span>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- DASHBOARD INFERIOR -->
+        <div class="row g-3">
+
+            <!-- MÚSICA -->
+            <div class="col-12 col-lg-6">
+
+                <div class="card dashboard-card h-100">
+
+                    <div class="card-body">
+
+                        <h6 class="card-title mb-3">
+                            Música em Reprodução
+                        </h6>
+
+                        <div class="d-flex align-items-center gap-3">
+
+                            <div class="album-cover">
+                                <i class="bi bi-music-note-beamed"></i>
+                            </div>
+
+                            <div class="music-info flex-grow-1">
+
+                                <strong>@mediaArtist</strong>
+                                <span>@mediaTitle</span>
+
+                                <div class="music-controls d-flex align-items-center gap-4 mt-3">
+
+                                    <button type="button" aria-label="Anterior" @onclick="PreviousTrackAsync">
+                                        <i class="bi bi-skip-start-fill"></i>
+                                    </button>
+
+                                    <button type="button" class="play-button" aria-label="Reproduzir ou pausar" @onclick="TogglePlaybackAsync">
+                                        <i class="bi @(isMediaPlaying ? "bi-pause-fill" : "bi-play-fill")"></i>
+                                    </button>
+
+                                    <button type="button" aria-label="Próxima" @onclick="NextTrackAsync">
+                                        <i class="bi bi-skip-end-fill"></i>
+                                    </button>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- VOLUME -->
+            <div class="col-12 col-lg-6">
+
+                <div class="card dashboard-card h-100">
+
+                    <div class="card-body">
+
+                        <h6 class="card-title mb-4">
+                            Volume do Sistema
+                        </h6>
+
+                        <div class="volume-content d-flex align-items-center gap-3">
+
+                            <i class="bi bi-volume-up volume-icon"></i>
+
+                            <input type="range"
+                                   class="form-range volume-range flex-grow-1"
+                                   min="0"
+                                   max="100"
+                                   value="@volumePercent"
+                                   @oninput="HandleVolumeInput"
+                                   aria-label="Volume do Windows" />
+
+                            <strong>@volumePercent%</strong>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+</div>
+
+
+                            
+
+@implements IAsyncDisposable
+
+@code {
+    private readonly Random random = new();
+
+    private PeriodicTimer? timer;
+    private CancellationTokenSource? cancellationTokenSource;
+    private PerformanceCounter? cpuCounter;
+    private PerformanceCounter? diskCounter;
+    private PerformanceCounterCategory? gpuCategory;
+    private readonly Dictionary<string, PerformanceCounter> gpuCounters = new();
+    private string mediaArtist = "Nenhuma música";
+    private string mediaTitle = "Nenhuma música em reprodução";
+    private bool isMediaPlaying;
+    private int volumePercent;
+    private MMDeviceEnumerator? audioDeviceEnumerator;
+    private MMDevice? audioDevice;
+
+#if WINDOWS
+    private Windows.Media.Control.GlobalSystemMediaTransportControlsSessionManager? mediaManager;
+    private Windows.Media.Control.GlobalSystemMediaTransportControlsSession? mediaSession;
+#endif
+
+    private int cpuUsage = 0;
+    private double CpuDashOffset => 100.53 * (1.0 - Math.Clamp(cpuUsage, 0, 100) / 100.0);
+
+    private const int HistorySize = 24;
+
+    private readonly List<int> cpuHistory = Enumerable.Repeat(35, HistorySize).ToList();
+
+    protected override void OnInitialized()
+    {
+        cancellationTokenSource = new CancellationTokenSource();
+
+        if (OperatingSystem.IsWindows())
+        {
+            cpuCounter = new PerformanceCounter(
+                "Processor",
+                "% Processor Time",
+                "_Total");
+
+            cpuCounter.NextValue();
+
+            diskCounter = new PerformanceCounter(
+                "PhysicalDisk",
+                "% Disk Time",
+                "_Total");
+
+            diskCounter.NextValue();
+
+            gpuCategory = new PerformanceCounterCategory("GPU Engine");
+
+            InitializeAudioVolume();
+        }
+
+        _ = InitializeMediaAsync();
+
+        timer = new PeriodicTimer(
+            TimeSpan.FromMilliseconds(400));
+
+        _ = UpdateCpuAsync(cancellationTokenSource.Token);
+    }
+
+    private void UpdateCpu()
+    {
+        if (cpuCounter is null)
+            return;
+
+        int usoCpu = Math.Clamp(
+            (int)Math.Round(cpuCounter.NextValue()),
+            0,
+            100);
+
+        Console.WriteLine($"Uso da CPU: {usoCpu:F1}%");
+
+        cpuUsage = usoCpu;
+
+        cpuHistory.RemoveAt(0);
+        cpuHistory.Add(cpuUsage);
+    }
+
+    private string GetCpuColor(int value)
+    {
+        if (value >= 80)
+            return "#ef647c";
+
+        if (value >= 60)
+            return "#e9b84e";
+
+        return "#2999ff";
+    }
+
+    private async Task UpdateCpuAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            while (await timer!.WaitForNextTickAsync(cancellationToken))
+            {
+                UpdateCpu();
+                UpdateRam();
+                UpdateGpu();
+                UpdateDisk();
+                await UpdateMediaAsync();
+                StateHasChanged();
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // Encerramento normal
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (cancellationTokenSource is not null)
+        {
+            await cancellationTokenSource.CancelAsync();
+            cancellationTokenSource.Dispose();
+        }
+
+        cpuCounter?.Dispose();
+        diskCounter?.Dispose();
+        audioDevice?.Dispose();
+        audioDeviceEnumerator?.Dispose();
+
+        foreach (var counter in gpuCounters.Values)
+            counter.Dispose();
+
+        timer?.Dispose();
+    }
+
+    private void InitializeAudioVolume()
+    {
+        try
+        {
+            audioDeviceEnumerator = new MMDeviceEnumerator();
+            audioDevice = audioDeviceEnumerator.GetDefaultAudioEndpoint(
+                DataFlow.Render,
+                Role.Multimedia);
+
+            volumePercent = Math.Clamp(
+                (int)Math.Round(
+                    audioDevice.AudioEndpointVolume.MasterVolumeLevelScalar * 100),
+                0,
+                100);
+        }
+        catch (COMException)
+        {
+            volumePercent = 0;
+        }
+    }
+
+    private void HandleVolumeInput(ChangeEventArgs args)
+    {
+        if (!int.TryParse(args.Value?.ToString(), out var value))
+            return;
+
+        volumePercent = Math.Clamp(value, 0, 100);
+
+        if (audioDevice is not null)
+        {
+            audioDevice.AudioEndpointVolume.MasterVolumeLevelScalar =
+                volumePercent / 100f;
+        }
+    }
+
+    private async Task InitializeMediaAsync()
+    {
+#if WINDOWS
+        try
+        {
+            mediaManager = await Windows.Media.Control
+                .GlobalSystemMediaTransportControlsSessionManager
+                .RequestAsync();
+
+            await UpdateMediaAsync();
+        }
+        catch (Exception ex) when (ex is UnauthorizedAccessException or COMException)
+        {
+            mediaManager = null;
+        }
+#else
+        await Task.CompletedTask;
+#endif
+    }
+
+    private async Task UpdateMediaAsync()
+    {
+#if WINDOWS
+        if (mediaManager is null)
+            return;
+
+        mediaSession = mediaManager.GetCurrentSession();
+
+        if (mediaSession is null)
+        {
+            mediaArtist = "Nenhuma música";
+            mediaTitle = "Nenhuma música em reprodução";
+            isMediaPlaying = false;
+            return;
+        }
+
+        var properties = await mediaSession.TryGetMediaPropertiesAsync();
+        var playbackInfo = mediaSession.GetPlaybackInfo();
+
+        mediaArtist = string.IsNullOrWhiteSpace(properties.Artist)
+            ? "Artista desconhecido"
+            : properties.Artist;
+
+        mediaTitle = string.IsNullOrWhiteSpace(properties.Title)
+            ? "Faixa desconhecida"
+            : properties.Title;
+
+        isMediaPlaying = playbackInfo.PlaybackStatus ==
+            Windows.Media.Control
+                .GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing;
+#else
+        await Task.CompletedTask;
+#endif
+    }
+
+    private async Task TogglePlaybackAsync()
+    {
+#if WINDOWS
+        if (mediaSession is not null)
+            await mediaSession.TryTogglePlayPauseAsync();
+#else
+        await Task.CompletedTask;
+#endif
+    }
+
+    private async Task PreviousTrackAsync()
+    {
+#if WINDOWS
+        if (mediaSession is not null)
+            await mediaSession.TrySkipPreviousAsync();
+#else
+        await Task.CompletedTask;
+#endif
+    }
+
+    private async Task NextTrackAsync()
+    {
+#if WINDOWS
+        if (mediaSession is not null)
+            await mediaSession.TrySkipNextAsync();
+#else
+        await Task.CompletedTask;
+#endif
+    }
+
+    private int ramUsage = 34;
+
+    private readonly List<int> ramHistory = Enumerable.Repeat(34, 24).ToList();
+
+    private double RamDashOffset => 100.53 * (1.0 - Math.Clamp(ramUsage, 0, 100) / 100.0);
+
+    private string RamHistoryPoints => string.Join(" ", ramHistory.Select((value, index) =>
+        {
+            var x = index * 100.0 / (ramHistory.Count - 1);
+            var y = 27 - (value / 100.0 * 24);
+
+            return $"{x.ToString(System.Globalization.CultureInfo.InvariantCulture)},{y.ToString(System.Globalization.CultureInfo.InvariantCulture)}";
+        }));
+
+    private void UpdateRam()
+    {
+        if (!OperatingSystem.IsWindows())
+            return;
+
+        var memoryStatus = new MemoryStatusEx
+        {
+            Length = (uint)Marshal.SizeOf<MemoryStatusEx>()
+        };
+
+        if (GlobalMemoryStatusEx(ref memoryStatus))
+            ramUsage = Math.Clamp((int)memoryStatus.MemoryLoad, 0, 100);
+
+        ramHistory.RemoveAt(0);
+        ramHistory.Add(ramUsage);
+    }
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+    private struct MemoryStatusEx
+    {
+        public uint Length;
+        public uint MemoryLoad;
+        public ulong TotalPhysicalMemory;
+        public ulong AvailablePhysicalMemory;
+        public ulong TotalPageFile;
+        public ulong AvailablePageFile;
+        public ulong TotalVirtualMemory;
+        public ulong AvailableVirtualMemory;
+        public ulong AvailableExtendedVirtualMemory;
+    }
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool GlobalMemoryStatusEx(ref MemoryStatusEx memoryStatus);
+
+    private string CpuHistoryPoints =>
+    string.Join(" ", cpuHistory.Select((value, index) =>
+    {
+        var x = index * 100.0 / (cpuHistory.Count - 1);
+        var y = 27 - (value / 100.0 * 24);
+
+        return $"{x.ToString(System.Globalization.CultureInfo.InvariantCulture)},{y.ToString(System.Globalization.CultureInfo.InvariantCulture)}";
+    }));
+
+    private int gpuUsage = 0;
+
+    private readonly List<int> gpuHistory = Enumerable.Repeat(0, HistorySize).ToList();
+
+    private double GpuDashOffset => 100.53 * (1.0 - Math.Clamp(gpuUsage, 0, 100) / 100.0);
+
+    private string GpuHistoryPoints =>
+        string.Join(" ", gpuHistory.Select((value, index) =>
+        {
+            var x = index * 100.0 / (gpuHistory.Count - 1);
+            var y = 27 - (value / 100.0 * 24);
+
+            return $"{x.ToString(System.Globalization.CultureInfo.InvariantCulture)},{y.ToString(System.Globalization.CultureInfo.InvariantCulture)}";
+        }));
+
+    private void UpdateGpu()
+    {
+        if (!OperatingSystem.IsWindows() || gpuCategory is null)
+            return;
+
+        try
+        {
+            var instances = gpuCategory
+                .GetInstanceNames()
+                .Where(instance => instance.Contains(
+                    "engtype_3D",
+                    StringComparison.OrdinalIgnoreCase))
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var instance in instances)
+            {
+                if (!gpuCounters.ContainsKey(instance))
+                {
+                    var counter = new PerformanceCounter(
+                        "GPU Engine",
+                        "% Utilization Percentage",
+                        instance);
+
+                    counter.NextValue();
+                    gpuCounters[instance] = counter;
+                }
+            }
+
+            foreach (var instance in gpuCounters.Keys.Except(instances).ToList())
+            {
+                gpuCounters[instance].Dispose();
+                gpuCounters.Remove(instance);
+            }
+
+            gpuUsage = Math.Clamp(
+                (int)Math.Round(gpuCounters.Values
+                    .Select(counter => counter.NextValue())
+                    .DefaultIfEmpty()
+                    .Max()),
+                0,
+                100);
+        }
+        catch (InvalidOperationException)
+        {
+            gpuUsage = 0;
+        }
+
+        gpuHistory.RemoveAt(0);
+        gpuHistory.Add(gpuUsage);
+    }
+
+    private int diskUsage;
+
+    private double DiskDashOffset => 100.53 * (1.0 - Math.Clamp(diskUsage, 0, 100) / 100.0);
+
+    private void UpdateDisk()
+    {
+        if (!OperatingSystem.IsWindows() || diskCounter is null)
+            return;
+
+        diskUsage = Math.Clamp((int)Math.Round(diskCounter.NextValue()), 0, 100);
+    }
+}

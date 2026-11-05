@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="src/UI/UI.csproj" Id="9d41d377-69e8-49bc-b688-f48816bc90ef">
+    <Deploy Solution="Debug|*" />
+  </Project>
+</Solution>
