@@ -94,11 +94,25 @@
 
     /* CONTEÚDO PRINCIPAL */
 
+   
     .main-content {
         min-width: 0;
         padding: 28px 24px;
         overflow-x: hidden;
         background: radial-gradient(ellipse at 30% 65%, #34206c33, transparent 40%), #11121a;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+    }
+
+    .page-content {
+        flex: 1;
+    }
+
+    .page-footer {
+        margin-top: auto;
+        padding-top: 20px;
+        border-top: 1px solid #29263d;
     }
 
     .page-header h1 {
@@ -302,7 +316,6 @@
         background: linear-gradient(145deg, #363744, #111218 60%);
         border: 2px solid #484654;
         box-shadow: 0 20px 35px #0009, inset 0 1px 3px #ffffff33;
-        transform: perspective(900px) rotateY(-7deg) rotateX(2deg);
     }
 
     /* TFT */
@@ -765,43 +778,46 @@
         </div>
 
         <!-- DASHBOARD INFERIOR -->
-        <div class="row g-3">
+        <div class="page-footer">
+            <div class="row g-3">
 
-            <!-- MÚSICA -->
-            <div class="col-12 col-lg-6">
+                <!-- MÚSICA -->
+                <div class="col-12 col-lg-6">
 
-                <div class="card dashboard-card h-100">
+                    <div class="card dashboard-card h-100">
 
-                    <div class="card-body">
+                        <div class="card-body">
 
-                        <h6 class="card-title mb-3">
-                            Música em Reprodução
-                        </h6>
+                            <h6 class="card-title mb-3">
+                                Música em Reprodução
+                            </h6>
 
-                        <div class="d-flex align-items-center gap-3">
+                            <div class="d-flex align-items-center gap-3">
 
-                            <div class="album-cover">
-                                <i class="bi bi-music-note-beamed"></i>
-                            </div>
+                                <div class="album-cover">
+                                    <i class="bi bi-music-note-beamed"></i>
+                                </div>
 
-                            <div class="music-info flex-grow-1">
+                                <div class="music-info flex-grow-1">
 
-                                <strong>@mediaArtist</strong>
-                                <span>@mediaTitle</span>
+                                    <strong>@mediaArtist</strong>
+                                    <span>@mediaTitle</span>
 
-                                <div class="music-controls d-flex align-items-center gap-4 mt-3">
+                                    <div class="music-controls d-flex align-items-center gap-4 mt-3">
 
-                                    <button type="button" aria-label="Anterior" @onclick="PreviousTrackAsync">
-                                        <i class="bi bi-skip-start-fill"></i>
-                                    </button>
+                                        <button type="button" aria-label="Anterior" @onclick="PreviousTrackAsync">
+                                            <i class="bi bi-skip-start-fill"></i>
+                                        </button>
 
-                                    <button type="button" class="play-button" aria-label="Reproduzir ou pausar" @onclick="TogglePlaybackAsync">
-                                        <i class="bi @(isMediaPlaying ? "bi-pause-fill" : "bi-play-fill")"></i>
-                                    </button>
+                                        <button type="button" class="play-button" aria-label="Reproduzir ou pausar" @onclick="TogglePlaybackAsync">
+                                            <i class="bi @(isMediaPlaying ? "bi-pause-fill" : "bi-play-fill")"></i>
+                                        </button>
 
-                                    <button type="button" aria-label="Próxima" @onclick="NextTrackAsync">
-                                        <i class="bi bi-skip-end-fill"></i>
-                                    </button>
+                                        <button type="button" aria-label="Próxima" @onclick="NextTrackAsync">
+                                            <i class="bi bi-skip-end-fill"></i>
+                                        </button>
+
+                                    </div>
 
                                 </div>
 
@@ -813,32 +829,32 @@
 
                 </div>
 
-            </div>
+                <!-- VOLUME -->
+                <div class="col-12 col-lg-6">
 
-            <!-- VOLUME -->
-            <div class="col-12 col-lg-6">
+                    <div class="card dashboard-card h-100">
 
-                <div class="card dashboard-card h-100">
+                        <div class="card-body">
 
-                    <div class="card-body">
+                            <h6 class="card-title mb-4">
+                                Volume do Sistema
+                            </h6>
 
-                        <h6 class="card-title mb-4">
-                            Volume do Sistema
-                        </h6>
+                            <div class="volume-content d-flex align-items-center gap-3">
 
-                        <div class="volume-content d-flex align-items-center gap-3">
+                                <i class="bi bi-volume-up volume-icon"></i>
 
-                            <i class="bi bi-volume-up volume-icon"></i>
+                                <input type="range"
+                                       class="form-range volume-range flex-grow-1"
+                                       min="0"
+                                       max="100"
+                                       value="@volumePercent"
+                                       @oninput="HandleVolumeInput"
+                                       aria-label="Volume do Windows" />
 
-                            <input type="range"
-                                   class="form-range volume-range flex-grow-1"
-                                   min="0"
-                                   max="100"
-                                   value="@volumePercent"
-                                   @oninput="HandleVolumeInput"
-                                   aria-label="Volume do Windows" />
+                                <strong>@volumePercent%</strong>
 
-                            <strong>@volumePercent%</strong>
+                            </div>
 
                         </div>
 
@@ -847,8 +863,8 @@
                 </div>
 
             </div>
-
         </div>
+
 
     </main>
 

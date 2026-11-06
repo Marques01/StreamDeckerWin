@@ -17,6 +17,7 @@
     {
         if (firstRender)
         {
+            await Task.Delay(1500);
             await JS.InvokeVoidAsync("hideBootLoader");
         }
     }
