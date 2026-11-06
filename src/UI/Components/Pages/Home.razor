@@ -3,10 +3,752 @@
 @using System.Runtime.InteropServices
 @using NAudio.CoreAudioApi
 
+
 <style>
+    /* =====================================================
+       01. IDENTIDADE VISUAL E ESTRUTURA GERAL
+    ===================================================== */
+
+    .app-shell {
+        height: 100vh;
+        min-height: 0;
+        display: flex;
+        overflow: hidden;
+        background: #11121a;
+        color: #f4f4fa;
+        font-family: 'Inter', sans-serif;
+    }
 
 
+    /* =====================================================
+       02. SIDEBAR / MENU LATERAL
+    ===================================================== */
 
+    .sidebar {
+        width: 214px;
+        min-width: 214px;
+        padding: 18px 10px;
+        background: #171624;
+        border-right: 1px solid #29263d;
+    }
+
+    /* Identificação da aplicação */
+
+    .brand {
+        padding: 0 5px 15px;
+    }
+
+    .brand-logo {
+        width: 39px;
+        height: 39px;
+        display: grid;
+        place-items: center;
+        border-radius: 12px;
+        font-size: 25px;
+        font-weight: 800;
+        color: white;
+        background: linear-gradient(135deg, #9b55ff, #5125ca);
+        box-shadow: 0 0 20px #793dff55;
+    }
+
+    .brand strong,
+    .brand span {
+        display: block;
+    }
+
+    .brand strong {
+        font-size: 14px;
+    }
+
+    .brand span {
+        font-size: 11px;
+        color: #aaa8bf;
+    }
+
+    /* Links de navegação */
+
+    .navigation .nav-link {
+        height: 43px;
+        padding: 0 12px;
+        border-radius: 9px;
+        color: #c4c1d6;
+        font-size: 12px;
+        transition: .2s;
+    }
+
+    .navigation .nav-link i {
+        font-size: 18px;
+    }
+
+    .navigation .nav-link:hover {
+        background: #29243e;
+        color: white;
+    }
+
+    .navigation .nav-link.active {
+        color: white;
+        background: linear-gradient(100deg, #4f25c9, #29205a);
+        box-shadow: 0 4px 15px #4f25c933;
+    }
+
+    /* Rodapé da sidebar */
+
+    .sidebar-footer {
+        padding: 12px 8px;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        font-size: 10px;
+        color: #77758f;
+    }
+
+
+    /* =====================================================
+       03. CONTEÚDO PRINCIPAL
+    ===================================================== */
+
+    .main-content {
+        position: relative;
+        isolation: isolate;
+        min-width: 0;
+        height: 100%;
+        min-height: 0;
+        padding: 28px 24px;
+        overflow: hidden;
+
+        display: flex;
+        flex-direction: column;
+
+        background:
+            linear-gradient(
+                rgba(13, 12, 25, .55),
+                rgba(13, 12, 25, .72)
+            ),
+            url('/images/dashboard-wallpaper.png');
+
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+    }
+
+    /*
+       Camada de iluminação roxa.
+       Fica atrás das ondas e do conteúdo.
+    */
+
+    .main-content::before {
+        content: "";
+        position: absolute;
+        z-index: 0;
+        pointer-events: none;
+
+        width: 100%;
+        height: 75%;
+        left: 0;
+        bottom: 0;
+
+        background: radial-gradient(
+            ellipse at 45% 90%,
+            rgba(112, 48, 255, .38),
+            rgba(112, 48, 255, .18) 35%,
+            transparent 65%
+        );
+
+        filter: blur(45px);
+    }
+
+    /*
+       Primeira onda.
+       Borda e brilho mais evidentes.
+    */
+
+    .main-content::after {
+        content: "";
+        position: absolute;
+        z-index: 0;
+        pointer-events: none;
+
+        width: 135%;
+        height: 300px;
+        left: -18%;
+        bottom: 12%;
+
+        border-top: 3px solid rgba(157, 91, 255, .65);
+        border-radius: 50%;
+
+        transform: rotate(-8deg);
+
+        box-shadow:
+            0 -12px 30px rgba(123, 55, 255, .35),
+            0 -25px 65px rgba(123, 55, 255, .28),
+            0 -40px 100px rgba(123, 55, 255, .16);
+
+        filter: blur(1.5px);
+
+        animation: wave-drift 18s ease-in-out infinite alternate;
+    }
+
+    /*
+       Segunda onda.
+       Complementa a primeira com uma linha mais suave.
+    */
+
+    .wave-decoration {
+        position: absolute;
+        z-index: 0;
+        pointer-events: none;
+
+        width: 140%;
+        height: 250px;
+        left: -20%;
+        bottom: 20%;
+
+        border-top: 2px solid rgba(190, 139, 255, .48);
+        border-radius: 50%;
+
+        transform: rotate(7deg);
+
+        box-shadow:
+            0 -15px 35px rgba(142, 75, 255, .30),
+            0 -25px 60px rgba(142, 75, 255, .22);
+
+        filter: blur(1px);
+
+        animation: wave-drift-reverse 22s ease-in-out infinite alternate;
+    }
+
+    /* Linha complementar da segunda onda */
+
+    .wave-decoration::before {
+        content: "";
+        position: absolute;
+
+        width: 100%;
+        height: 100%;
+        top: 35px;
+        left: 0;
+
+        border-top: 2px solid rgba(142, 92, 255, .30);
+        border-radius: 50%;
+    }
+
+    /*
+       Garante que os elementos da interface
+       fiquem acima das ondas decorativas.
+    */
+
+    .main-content > :not(.wave-decoration) {
+        position: relative;
+        z-index: 1;
+    }
+
+    /* Animação horizontal das ondas */
+
+    @@keyframes wave-drift {
+        from {
+            transform: translateX(-2%) rotate(-8deg);
+        }
+
+        to {
+            transform: translateX(2%) rotate(-4deg);
+        }
+    }
+
+    @@keyframes wave-drift-reverse {
+        from {
+            transform: translateX(2%) rotate(7deg);
+        }
+
+        to {
+            transform: translateX(-2%) rotate(3deg);
+        }
+    }
+
+
+    /* =====================================================
+       04. CABEÇALHO E ÁREAS DA PÁGINA
+    ===================================================== */
+
+    .page-content {
+        flex: 1;
+    }
+
+    .page-footer {
+        margin-top: auto;
+        padding-top: 20px;
+        border-top: 1px solid #29263d;
+    }
+
+    .page-header h1 {
+        margin: 0 0 7px;
+        font-size: 25px;
+        font-weight: 700;
+    }
+
+    .page-header p {
+        margin: 0;
+        font-size: 12px;
+        color: #aaa8bd;
+    }
+
+
+    /* =====================================================
+       05. STATUS DA CONEXÃO SERIAL
+    ===================================================== */
+
+    .connection-status {
+        padding: 11px 17px;
+        border: 1px solid #245c493d;
+        background: #182b29;
+        border-radius: 30px;
+        flex-shrink: 0;
+    }
+
+    .connection-status strong,
+    .connection-status small {
+        display: block;
+    }
+
+    .connection-status strong {
+        font-size: 12px;
+    }
+
+    .connection-status small {
+        margin-top: 3px;
+        font-size: 10px;
+        color: #a2b9b0;
+    }
+
+    .status-dot {
+        width: 11px;
+        height: 11px;
+        border-radius: 50%;
+        background: #18d987;
+        box-shadow: 0 0 12px #18d98788;
+    }
+
+
+    /* =====================================================
+       06. CARDS DO DASHBOARD
+    ===================================================== */
+
+    .dashboard-card {
+        color: #f4f4fa;
+        background: linear-gradient(145deg, #1d1e2c, #191a27);
+        border: 1px solid #303044;
+        border-radius: 13px;
+        box-shadow: 0 8px 25px #00000018;
+    }
+
+    .dashboard-card .card-title {
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .windows-icon {
+        font-size: 24px;
+        color: #43a9ff;
+    }
+
+
+    /* =====================================================
+       07. MONITORAMENTO DO SISTEMA
+    ===================================================== */
+
+    /* Linhas individuais de monitoramento */
+
+    .metric-row {
+        position: relative;
+        width: 100%;
+        min-height: 43px;
+        border-bottom: 1px solid #ffffff08;
+    }
+
+    .metric-row:last-child {
+        border-bottom: 0;
+    }
+
+    .metric-icon {
+        width: 24px;
+        font-size: 17px;
+        color: #9c80ef;
+    }
+
+    .metric-name {
+        font-size: 12px;
+        color: #b9b7c9;
+    }
+
+    /* Gráficos de linha */
+
+    .sparkline {
+        width: 75px;
+        height: 30px;
+        flex-shrink: 0;
+        overflow: visible;
+    }
+
+    .sparkline polyline {
+        fill: none;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
+
+    .sparkline.purple {
+        stroke: #a45bff;
+    }
+
+    .sparkline.green {
+        stroke: #23cf8a;
+    }
+
+    .sparkline.yellow {
+        stroke: #e9b84e;
+    }
+
+    .sparkline.blue polyline {
+        stroke: #2999ff;
+    }
+
+    .sparkline.green polyline {
+        stroke: #42c98a;
+    }
+
+    /* Indicadores circulares */
+
+    .radial-indicator {
+        position: relative;
+        width: 48px;
+        height: 48px;
+        flex-shrink: 0;
+    }
+
+    .radial-indicator svg {
+        width: 100%;
+        height: 100%;
+        display: block;
+    }
+
+    .radial-indicator circle {
+        transition: stroke-dashoffset .35s ease;
+    }
+
+    .radial-value {
+        position: absolute;
+        inset: 0;
+
+        display: grid;
+        place-items: center;
+
+        font-size: 11px;
+        font-weight: 700;
+        color: white;
+    }
+
+    .radial-track {
+        fill: none;
+        stroke: #343044;
+        stroke-width: 4;
+    }
+
+    .radial-progress {
+        fill: none;
+        stroke: #9b65ff;
+        stroke-width: 4;
+        stroke-linecap: round;
+        transition: stroke-dashoffset .35s ease;
+    }
+
+
+    /* =====================================================
+       08. REPRESENTAÇÃO VISUAL DO STREAM DECK
+    ===================================================== */
+
+    .device-area {
+        position: relative;
+        min-height: 310px;
+
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        overflow: hidden;
+    }
+
+    /* Iluminação atrás do dispositivo */
+
+    .device-glow {
+        position: absolute;
+        width: 300px;
+        height: 250px;
+
+        background: #642bff;
+        filter: blur(100px);
+        opacity: .19;
+    }
+
+    /* Corpo principal */
+
+    .stream-device {
+        position: relative;
+        z-index: 1;
+
+        width: 275px;
+        padding: 13px;
+
+        border-radius: 22px;
+        background: linear-gradient(145deg, #363744, #111218 60%);
+        border: 2px solid #484654;
+
+        box-shadow:
+            0 20px 35px #0009,
+            inset 0 1px 3px #ffffff33;
+    }
+
+    /* Tela TFT */
+
+    .device-screen {
+        height: 105px;
+
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+
+        background: linear-gradient(135deg, #080b17, #131c32);
+        border: 5px solid #08090e;
+        border-radius: 10px;
+
+        box-shadow: inset 0 0 15px #000;
+    }
+
+    .screen-time {
+        font-size: 37px;
+        font-weight: 500;
+        letter-spacing: -2px;
+    }
+
+    .screen-date {
+        font-size: 10px;
+        color: #c6c9d7;
+    }
+
+    .screen-stats {
+        display: flex;
+        gap: 9px;
+        margin-top: 9px;
+
+        font-size: 8px;
+        color: #d4d8e5;
+    }
+
+    /* Teclas mecânicas */
+
+    .device-keys {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 9px;
+        padding: 12px 5px 3px;
+    }
+
+    .device-key {
+        aspect-ratio: 1;
+
+        display: grid;
+        place-items: center;
+
+        border-radius: 9px;
+        background: linear-gradient(145deg, #282a37, #090a10);
+        border: 1px solid #444653;
+
+        box-shadow:
+            0 4px 0 #050509,
+            0 5px 8px #0009;
+
+        font-size: 27px;
+        color: #f0efff;
+        text-shadow: 0 0 7px #ffffff66;
+    }
+
+    .device-key.key-active {
+        color: #58a9ff;
+        text-shadow: 0 0 12px #328bff;
+    }
+
+
+    /* =====================================================
+       09. CONTROLES DE MÚSICA
+    ===================================================== */
+
+    /* Capa do álbum */
+
+    .album-cover {
+        width: 78px;
+        min-width: 78px;
+        height: 78px;
+
+        display: grid;
+        place-items: center;
+
+        border-radius: 9px;
+        background: linear-gradient(145deg, #9a56d9, #273b8c 55%, #111a36);
+
+        box-shadow: inset 0 0 20px #ffffff15;
+
+        font-size: 32px;
+        color: white;
+    }
+
+    /* Informações da música */
+
+    .music-info {
+        min-width: 0;
+
+        display: flex;
+        flex-direction: column;
+    }
+
+    .music-info strong {
+        font-size: 12px;
+    }
+
+    .music-info span {
+        margin-top: 5px;
+        font-size: 11px;
+        color: #aaa8bd;
+    }
+
+    /* Botões de reprodução */
+
+    .music-controls button {
+        border: 0;
+        background: transparent;
+        color: #bcb9ce;
+
+        cursor: pointer;
+        font-size: 15px;
+    }
+
+    .music-controls button:hover {
+        color: #a77aff;
+    }
+
+    .music-controls .play-button {
+        color: #a77aff;
+        font-size: 19px;
+    }
+
+
+    /* =====================================================
+       10. CONTROLE DE VOLUME
+    ===================================================== */
+
+    .volume-icon {
+        font-size: 23px;
+        color: #d4c7ff;
+    }
+
+    .volume-content strong {
+        min-width: 35px;
+        text-align: right;
+        font-size: 12px;
+    }
+
+    .volume-range {
+        accent-color: #914dff;
+    }
+
+
+    /* =====================================================
+       11. RESPONSIVIDADE - TABLETS
+    ===================================================== */
+
+    @@media (max-width: 991.98px) {
+        .device-area {
+            min-height: 280px;
+        }
+    }
+
+
+    /* =====================================================
+       12. RESPONSIVIDADE - CELULARES
+    ===================================================== */
+
+    @@media (max-width: 575.98px) {
+
+        /* Sidebar compacta */
+
+        .sidebar {
+            width: 65px;
+            min-width: 65px;
+            padding: 18px 7px;
+        }
+
+        .brand {
+            justify-content: center;
+            padding-left: 0;
+            padding-right: 0;
+        }
+
+        .brand > div:last-child,
+        .navigation .nav-link span,
+        .sidebar-footer {
+            display: none;
+        }
+
+        .navigation .nav-link {
+            justify-content: center;
+            padding: 0;
+        }
+
+        /* Conteúdo principal */
+
+        .main-content {
+            padding: 18px 12px;
+        }
+
+        /* Cabeçalho */
+
+        .page-header h1 {
+            font-size: 19px;
+        }
+
+        .page-header p {
+            max-width: 190px;
+        }
+
+        /* Status da conexão */
+
+        .connection-status {
+            padding: 8px;
+        }
+
+        .connection-status strong {
+            font-size: 10px;
+        }
+
+        .connection-status small {
+            font-size: 9px;
+        }
+    }
+
+
+    /* =====================================================
+       13. ACESSIBILIDADE E REDUÇÃO DE MOVIMENTO
+    ===================================================== */
+
+    @@media (prefers-reduced-motion: reduce) {
+        .main-content::after,
+        .wave-decoration {
+            animation: none;
+        }
+    }
+
+</style>
+
+
+@* <style>
 
     /* IDENTIDADE VISUAL */
 
@@ -501,7 +1243,7 @@
     }
 
 </style>
-
+ *@
 <div class="app-shell">
 
     <!-- SIDEBAR -->
@@ -553,6 +1295,7 @@
 
     <!-- MAIN -->
     <main class="main-content flex-grow-1">
+        <div class="wave-decoration"></div>
 
         <!-- HEADER -->
         <header class="page-header d-flex justify-content-between align-items-center gap-3 mb-4">
@@ -588,17 +1331,17 @@
                         <!-- TFT -->
                         <div class="device-screen">
 
-                            <div class="screen-time">15:42</div>
+                            <div class="screen-time">@(DateTime.Now.ToString("HH:mm"))</div>
 
                             <div class="screen-date">
-                                Qui, 06 Nov
+                                @DateTime.Now.DayOfWeek.ToString(), @DateTime.Now.Day/@DateTime.Now.Month
                             </div>
 
-                            <div class="screen-stats">
+                          @*   <div class="screen-stats">
                                 <span>CPU 12%</span>
                                 <span>RAM 34%</span>
                                 <span>GPU 18%</span>
-                            </div>
+                            </div> *@
 
                         </div>
 
@@ -864,8 +1607,6 @@
 
             </div>
         </div>
-
-
     </main>
 
 </div>
